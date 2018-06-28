@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -43,9 +44,33 @@ def post_new(request):
         form = PostForm(request.POST)
         if form.is_valid():
             print(form.cleaned_data)
-            post = Post(author=request.user,title=form.cleaned_data['title'],text=form.cleaned_data['text'],published_date=timezone.now())
-            post.save()
+            #방법1
+            #post = Post(author=request.user,title=form.cleaned_data['title'],text=form.cleaned_data['text'],published_date=timezone.now())
+            #post.save()
+
+            #방법2  save -> objects.create
+            post = Post.objects.create(author=request.user, title=form.cleaned_data['title'], text=form.cleaned_data['text'],
+                        published_date=timezone.now())
+
             return redirect('post_detail',pk=post.pk)
     else:
         form = PostForm()
     return render(request,'blog/post_edit.html',{'form':form})
+
+#PostModelForm 을 사용한 수정
+#login check
+@login_required
+def post_edit(request,pk):
+    post = get_object_or_404(Post,pk=pk)
+    if request.method == "POST":
+        form = PostModelForm(request.POST,instance=post)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.published_date = timezone.now()
+            post.save()
+        return redirect('post_detail',pk=post.pk)
+    else:
+        form = PostModelForm(instance=post)
+    return render(request,'blog/post_edit.html',{'form':form})
+

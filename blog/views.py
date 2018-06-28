@@ -5,8 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 
 from .models import Post
-from .forms import PostModelForm
-
+from .forms import PostModelForm, PostForm
 
 def post_list_old(request):
     name_var = 'django장고'
@@ -22,7 +21,8 @@ def post_detail(request,pk):
     post_obj = get_object_or_404(Post,pk=pk)
     return render(request,'blog/post_detail.html',{'post':post_obj})
 
-def post_new(request):
+#PostModelForm
+def post_new_modelform(request):
     if request.method == "POST":
         myform = PostModelForm(request.POST)
         if myform.is_valid():
@@ -37,3 +37,15 @@ def post_new(request):
         myform = PostModelForm()
     return render(request,'blog/post_edit.html',{'form':myform})
 
+#PostForm 사용
+def post_new(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            post = Post(author=request.user,title=form.cleaned_data['title'],text=form.cleaned_data['text'],published_date=timezone.now())
+            post.save()
+            return redirect('post_detail',pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request,'blog/post_edit.html',{'form':form})

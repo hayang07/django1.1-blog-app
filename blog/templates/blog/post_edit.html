@@ -8,7 +8,9 @@
 <h1>New post</h1>
     <form method="POST" class="post-form">
         {% csrf_token%}
-        {{ form.as_p}}
+        <table class="table table-bordered table-hover">
+            {{ form.as_p }}
+        </table>
         <button type="submit" class="save btnbtn-default">Save</button>
     </form>
 {% endblock%}
